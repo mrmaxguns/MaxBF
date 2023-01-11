@@ -327,9 +327,6 @@ ExcecutionStatus tape_input(Tape *tape, JumpStack *jump_stack)
     int ch = getchar();
     if (ch == EOF) {
         ch = 0;
-    } else if (ch > CHAR_MAX) {
-        warn("User entered character that could not be stored in `char`.");
-        ch = 0;
     }
     *tape->pointer = (char)ch;
     return STATUS_OK;
