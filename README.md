@@ -33,3 +33,5 @@ Then:
   means 8 bytes on most systems.
 - Jump instructions `[` and `]` must be properly nested or the interpreter exits with an
   error.
+- If an EOF is encountered during input, the cell is set to 0. The same thing applies if
+  the input was a value larger than the size of a character.
