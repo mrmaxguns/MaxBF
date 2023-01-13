@@ -1,6 +1,6 @@
 # MaxBF
 
-A Brainfuck interpreter written in C.
+A bulletproof, tested, Brainfuck interpreter written in C.
 
 ## Build
 
@@ -20,6 +20,20 @@ Then:
 
 ```sh
 ./maxbf FILE
+```
+
+## Test
+
+With CMake:
+
+```
+ctest
+```
+
+Example on GNU/Linux:
+
+```
+make test
 ```
 
 ## Specification
