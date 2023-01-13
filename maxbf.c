@@ -30,6 +30,7 @@ char mock_output_buf[TEST_BUF_SIZE] = { 0 };
 static inline int mock_getchar(void)
 {
     int result = (int)mock_input_buf[0];
+    // Shift input one to the left.
     memmove(mock_input_buf, &mock_input_buf[1], TEST_BUF_SIZE - 1);
     if (result == 0) {
         return EOF;
@@ -49,7 +50,7 @@ static inline int mock_putchar(int c)
 #undef putchar
 #define putchar(c) mock_putchar(c)
 
-#endif
+#endif // ifdef TESTING
 
 #define OK_OR_ERROR(fn, ...)                  \
     do {                                      \

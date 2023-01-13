@@ -1,4 +1,4 @@
-// https://jera.com/techinfo/jtns/jtn002
+// Unit testing: https://jera.com/techinfo/jtns/jtn002
 
 #ifndef MINUNIT_H
 #define MINUNIT_H
