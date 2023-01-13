@@ -22,6 +22,35 @@
 #define TOK_JUMP_ZERO  '['
 #define TOK_JUMP_NZERO ']'
 
+#ifdef TESTING // Mock functions for testing.
+#define TEST_BUF_SIZE 1000
+char mock_input_buf[TEST_BUF_SIZE] = { 0 };
+char mock_output_buf[TEST_BUF_SIZE] = { 0 };
+
+static inline int mock_getchar(void)
+{
+    int result = (int)mock_input_buf[0];
+    memmove(mock_input_buf, &mock_input_buf[1], TEST_BUF_SIZE - 1);
+    if (result == 0) {
+        return EOF;
+    }
+    return result;
+}
+#undef getchar
+#define getchar() mock_getchar()
+
+static inline int mock_putchar(int c)
+{
+    size_t len = strlen(mock_output_buf);
+    mock_output_buf[len] = (char)c;
+    mock_output_buf[len + 1] = '\0';
+    return c;
+}
+#undef putchar
+#define putchar(c) mock_putchar(c)
+
+#endif
+
 #define OK_OR_ERROR(fn, ...)                  \
     do {                                      \
         ExcecutionStatus s = fn(__VA_ARGS__); \
@@ -123,6 +152,7 @@ static inline void warn(char *msg)
     printf("WARNING: %s\n", msg);
 }
 
+#ifndef TESTING
 int main(int argc, char *argv[])
 {
     if (argc != 2) {
@@ -151,6 +181,7 @@ int main(int argc, char *argv[])
     fclose(fp);
     return EXIT_SUCCESS;
 }
+#endif // ifndef TESTING
 
 ExcecutionStatus excecute_brainfuck_from_stream(FILE *fp)
 {
