@@ -48,3 +48,7 @@ make test
 - Jump instructions `[` and `]` must be properly nested or the interpreter exits with an
   error.
 - If an EOF is encountered during input, the cell is set to 0.
+
+## License
+
+MaxBF is distributed as free software under the GNU GPL V3 license.
