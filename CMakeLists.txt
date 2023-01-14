@@ -4,7 +4,7 @@ if(${CMAKE_VERSION} VERSION_LESS 3.12)
     cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
 endif()
 
-project(MaxBF VERSION 1.0
+project(MaxBF VERSION 0.1
               DESCRIPTION "A Brainfuck interpreter written in C."
               LANGUAGES C)
 
