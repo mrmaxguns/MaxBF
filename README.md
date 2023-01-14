@@ -2,41 +2,9 @@
 
 A bulletproof, tested, Brainfuck interpreter written in C.
 
-## Build
-
-The program is configured to be built by CMake. It is written in one file using
-standard C99 and can therefore be compiled by any spec-compliant compiler.
-
-Example on GNU/Linux:
-
-```sh
-mkdir build
-cd build
-cmake ..
-make
-```
-
-Then:
-
-```sh
-./maxbf FILE
-```
-
-## Test
-
-With CMake:
-
-```
-ctest
-```
-
-Example on GNU/Linux:
-
-```
-make test
-```
-
 ## Specification
+
+For full documentation, see [DOCUMENTATION.md](DOCUMENTATION.md).
 
 - Defined commands are `>`, `<`, `+`, `-`, `.`, `,`, `[` and `]`. All other characters
   are ignored.
@@ -48,6 +16,41 @@ make test
 - Jump instructions `[` and `]` must be properly nested or the interpreter exits with an
   error.
 - If an EOF is encountered during input, the cell is set to 0.
+
+## Build and run
+
+The program is configured to be built by CMake. It is written in one file using
+standard C99 and can therefore be compiled by any spec-compliant compiler.
+
+Build and install MaxBF:
+
+```sh
+cmake -S . -B build
+cmake --build build
+cmake --build build --target install
+```
+
+Run MaxBF:
+
+```sh
+maxbf FILE
+```
+
+See complete instructions at [DOCUMENTATION.md](DOCUMENTATION.md#compilation).
+
+## Test
+
+With CMake:
+
+```
+ctest
+```
+
+Or with the generated Makefile:
+
+```
+make test
+```
 
 ## License
 
