@@ -28,6 +28,7 @@ FILE *create_file_from_string(const char *s)
     }
 
     if (fputs(s, fp) == EOF) {
+        fclose(fp);
         goto error;
     }
     fseek(fp, 0L, SEEK_SET);
