@@ -16,12 +16,11 @@ int tmpnam_calls = 0;
 /*** Setup functions ***/
 FILE *create_file_from_string(const char *s)
 {
-    tmpnam_calls++;
-
     char file_name[L_tmpnam];
     if (tmpnam_calls == TMP_MAX || tmpnam(file_name) == NULL) {
         goto error;
     }
+    tmpnam_calls++;
 
     FILE *fp = fopen(file_name, "w+");
     if (fp == NULL) {
