@@ -1,5 +1,0 @@
-BasedOnStyle: WebKit
-AlignConsecutiveMacros: Consecutive
-AlignTrailingComments: true
-PointerAlignment: Right
-ReflowComments: true

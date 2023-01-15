@@ -10,8 +10,10 @@
 #include "maxbf.c"
 #include "minunit.h"
 
+
 int tests_run = 0;
 int tmpnam_calls = 0;
+
 
 /*** Setup functions ***/
 FILE *create_file_from_string(const char *s)
@@ -42,19 +44,25 @@ error:
 
 void buf_cleanup(void)
 {
+    // These buffers are defined along with the mock functions in maxbf.c.
     mock_input_buf[0] = '\0';
     mock_output_buf[0] = '\0';
 }
 
+
 /*** Test cases ***/
 static char *test_hello_world()
 {
-    FILE *fp = create_file_from_string(">++++++++[<+++++++++>-]<.>++++[<+++++++>-]<+.+++++++..+++.>>++++++[<+++++++>-]<+"
-                                       "+.------------.>++++++[<+++++++++>-]<+.<.+++.------.--------.>>>++++[<++++++++>-"
-                                       "]<+.");
+    FILE *fp = create_file_from_string(">++++++++[<+++++++++>-]<.>++++[<+++++++"
+                                       ">-]<+.+++++++..+++.>>++++++[<+++++++>-]"
+                                       "<++.------------.>++++++[<+++++++++>-]<"
+                                       "+.<.+++.------.--------.>>>++++[<++++++"
+                                       "++>-]<+.");
 
     ExcecutionStatus status = excecute_brainfuck_from_stream(fp);
-    mu_assert("Error, Hello World failed.", strcmp(mock_output_buf, "Hello, World!") == 0 && status == STATUS_OK);
+    mu_assert("Error, Hello World failed.",
+              strcmp(mock_output_buf, "Hello, World!") == 0
+              && status == STATUS_OK);
 
     fclose(fp);
     buf_cleanup();
@@ -63,11 +71,13 @@ static char *test_hello_world()
 
 static char *test_array_size()
 {
-    FILE *fp = create_file_from_string("++++[>++++++<-]>[>+++++>+++++++<<-]>>++++<[[>[[>>+<<-]<]>>>-]>-[>+>+<<-]>]"
-                                       "+++++[>+++++++<<++>-]>.<<.");
+    FILE *fp = create_file_from_string("++++[>++++++<-]>[>+++++>+++++++<<-]>>++"
+                                       "++<[[>[[>>+<<-]<]>>>-]>-[>+>+<<-]>]++++"
+                                       "+[>+++++++<<++>-]>.<<.");
 
     ExcecutionStatus status = excecute_brainfuck_from_stream(fp);
-    mu_assert("Error, Check for cell 30,000 failed.", strcmp(mock_output_buf, "#\n") == 0 && status == STATUS_OK);
+    mu_assert("Error, Check for cell 30,000 failed.",
+              strcmp(mock_output_buf, "#\n") == 0 && status == STATUS_OK);
 
     fclose(fp);
     buf_cleanup();
@@ -79,7 +89,8 @@ static char *test_left_bound()
     FILE *fp = create_file_from_string("<");
 
     ExcecutionStatus status = excecute_brainfuck_from_stream(fp);
-    mu_assert("Error, Moving left from cell 0 did not result in an error.", status == STATUS_ERR_LBOUND);
+    mu_assert("Error, Moving left from cell 0 did not result in an error.",
+              status == STATUS_ERR_LBOUND);
 
     fclose(fp);
     buf_cleanup();
@@ -91,7 +102,8 @@ static char *test_improper_nesting_1()
     FILE *fp = create_file_from_string("[[][][[]]");
 
     ExcecutionStatus status = excecute_brainfuck_from_stream(fp);
-    mu_assert("Error, Improper nesting (extra [) did not cause an error.", status == STATUS_ERR_NESTING);
+    mu_assert("Error, Improper nesting (extra [) did not cause an error.",
+              status == STATUS_ERR_NESTING);
 
     fclose(fp);
     buf_cleanup();
@@ -103,7 +115,8 @@ static char *test_improper_nesting_2()
     FILE *fp = create_file_from_string("[[]][[]");
 
     ExcecutionStatus status = excecute_brainfuck_from_stream(fp);
-    mu_assert("Error, Improper nesting (extra ]) did not cause an error.", status == STATUS_ERR_NESTING);
+    mu_assert("Error, Improper nesting (extra ]) did not cause an error.",
+              status == STATUS_ERR_NESTING);
 
     fclose(fp);
     buf_cleanup();
@@ -115,7 +128,8 @@ static char *test_ignore_characters()
     FILE *fp = create_file_from_string("abcd[efg]123?");
 
     ExcecutionStatus status = excecute_brainfuck_from_stream(fp);
-    mu_assert("Error, Invalid characters were not ignored.", status == STATUS_OK);
+    mu_assert("Error, Invalid characters were not ignored.",
+              status == STATUS_OK);
 
     fclose(fp);
     buf_cleanup();
@@ -124,7 +138,8 @@ static char *test_ignore_characters()
 
 static char *test_bracket_skipping()
 {
-    FILE *fp = create_file_from_string("[This: < and this [<] shouldn't cause an error]");
+    FILE *fp = create_file_from_string("[This: < and this [<] shouldn't cause a"
+                                       "n error]");
 
     ExcecutionStatus status = excecute_brainfuck_from_stream(fp);
     mu_assert("Error, Valid nesting caused an error.", status == STATUS_OK);
@@ -136,11 +151,13 @@ static char *test_bracket_skipping()
 
 static char *test_obscure_problems()
 {
-    FILE *fp = create_file_from_string("[]++++++++++[>>+>+>++++++[<<+<+++>>>-]<<<<-]"
-                                       "\"A*$\";?@![#>>+<<]>[>>]<<<<[>++<[-]]>.>.");
+    FILE *fp = create_file_from_string("[]++++++++++[>>+>+>++++++[<<+<+++>>>-]<"
+                                       "<<<-]\"A*$\";?@![#>>+<<]>[>>]<<<<[>++<["
+                                       "-]]>.>.");
 
     ExcecutionStatus status = excecute_brainfuck_from_stream(fp);
-    mu_assert("Error, Check for several obscure errors failed.", strcmp(mock_output_buf, "H\n") == 0 && status == STATUS_OK);
+    mu_assert("Error, Check for several obscure errors failed.",
+              strcmp(mock_output_buf, "H\n") == 0 && status == STATUS_OK);
 
     fclose(fp);
     buf_cleanup();
@@ -153,7 +170,8 @@ static char *test_input()
     strcpy(mock_input_buf, "Y\n&?.");
 
     ExcecutionStatus status = excecute_brainfuck_from_stream(fp);
-    mu_assert("Error, Input check failed.", strcmp(mock_output_buf, "Y\n?.") == 0 && status == STATUS_OK);
+    mu_assert("Error, Input check failed.",
+              strcmp(mock_output_buf, "Y\n?.") == 0 && status == STATUS_OK);
 
     fclose(fp);
     buf_cleanup();
@@ -162,18 +180,22 @@ static char *test_input()
 
 static char *test_io()
 {
-    FILE *fp = create_file_from_string(">,>+++++++++,>+++++++++++[<++++++<++++++<+>>>-]<<.>.<<-.>.>.<<.");
+    FILE *fp = create_file_from_string(">,>+++++++++,>+++++++++++[<++++++<+++++"
+                                       "+<+>>>-]<<.>.<<-.>.>.<<.");
     // Newline + EOF
     strcpy(mock_input_buf, "\n");
 
     ExcecutionStatus status = excecute_brainfuck_from_stream(fp);
-    mu_assert("Error, Input check failed.", strcmp(mock_output_buf, "LB\nLB\n") == 0 && status == STATUS_OK);
+    mu_assert("Error, Input check failed.",
+              strcmp(mock_output_buf, "LB\nLB\n") == 0 && status == STATUS_OK);
 
     fclose(fp);
     buf_cleanup();
     return 0;
 }
 
+
+/*** Test excecution. ***/
 static char *all_tests()
 {
     mu_run_test(test_hello_world);
