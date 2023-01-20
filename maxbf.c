@@ -157,7 +157,7 @@ ExcecutionStatus jump_stack_pop(JumpStack *jump_stack, fpos_t *pos);
 
 static inline void exit_with_error(char *msg)
 {
-    printf("ERROR: %s\n", msg);
+    fprintf(stderr, "ERROR: %s\n", msg);
     exit(EXIT_FAILURE);
 }
 
