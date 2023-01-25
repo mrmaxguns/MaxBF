@@ -59,7 +59,7 @@ static char *test_hello_world()
                                        "+.<.+++.------.--------.>>>++++[<++++++"
                                        "++>-]<+.");
 
-    ExcecutionStatus status = excecute_brainfuck_from_stream(fp);
+    ExecutionStatus status = execute_brainfuck_from_stream(fp);
     mu_assert("Error, Hello World failed.",
               strcmp(mock_output_buf, "Hello, World!") == 0
               && status == STATUS_OK);
@@ -75,7 +75,7 @@ static char *test_array_size()
                                        "++<[[>[[>>+<<-]<]>>>-]>-[>+>+<<-]>]++++"
                                        "+[>+++++++<<++>-]>.<<.");
 
-    ExcecutionStatus status = excecute_brainfuck_from_stream(fp);
+    ExecutionStatus status = execute_brainfuck_from_stream(fp);
     mu_assert("Error, Check for cell 30,000 failed.",
               strcmp(mock_output_buf, "#\n") == 0 && status == STATUS_OK);
 
@@ -88,7 +88,7 @@ static char *test_left_bound()
 {
     FILE *fp = create_file_from_string("<");
 
-    ExcecutionStatus status = excecute_brainfuck_from_stream(fp);
+    ExecutionStatus status = execute_brainfuck_from_stream(fp);
     mu_assert("Error, Moving left from cell 0 did not result in an error.",
               status == STATUS_ERR_LBOUND);
 
@@ -101,7 +101,7 @@ static char *test_improper_nesting_1()
 {
     FILE *fp = create_file_from_string("[[][][[]]");
 
-    ExcecutionStatus status = excecute_brainfuck_from_stream(fp);
+    ExecutionStatus status = execute_brainfuck_from_stream(fp);
     mu_assert("Error, Improper nesting (extra [) did not cause an error.",
               status == STATUS_ERR_NESTING);
 
@@ -114,7 +114,7 @@ static char *test_improper_nesting_2()
 {
     FILE *fp = create_file_from_string("[[]][[]");
 
-    ExcecutionStatus status = excecute_brainfuck_from_stream(fp);
+    ExecutionStatus status = execute_brainfuck_from_stream(fp);
     mu_assert("Error, Improper nesting (extra ]) did not cause an error.",
               status == STATUS_ERR_NESTING);
 
@@ -127,7 +127,7 @@ static char *test_ignore_characters()
 {
     FILE *fp = create_file_from_string("abcd[efg]123?");
 
-    ExcecutionStatus status = excecute_brainfuck_from_stream(fp);
+    ExecutionStatus status = execute_brainfuck_from_stream(fp);
     mu_assert("Error, Invalid characters were not ignored.",
               status == STATUS_OK);
 
@@ -141,7 +141,7 @@ static char *test_bracket_skipping()
     FILE *fp = create_file_from_string("[This: < and this [<] shouldn't cause a"
                                        "n error]");
 
-    ExcecutionStatus status = excecute_brainfuck_from_stream(fp);
+    ExecutionStatus status = execute_brainfuck_from_stream(fp);
     mu_assert("Error, Valid nesting caused an error.", status == STATUS_OK);
 
     fclose(fp);
@@ -155,7 +155,7 @@ static char *test_obscure_problems()
                                        "<<<-]\"A*$\";?@![#>>+<<]>[>>]<<<<[>++<["
                                        "-]]>.>.");
 
-    ExcecutionStatus status = excecute_brainfuck_from_stream(fp);
+    ExecutionStatus status = execute_brainfuck_from_stream(fp);
     mu_assert("Error, Check for several obscure errors failed.",
               strcmp(mock_output_buf, "H\n") == 0 && status == STATUS_OK);
 
@@ -169,7 +169,7 @@ static char *test_input()
     FILE *fp = create_file_from_string(",.,.,,.>,.");
     strcpy(mock_input_buf, "Y\n&?.");
 
-    ExcecutionStatus status = excecute_brainfuck_from_stream(fp);
+    ExecutionStatus status = execute_brainfuck_from_stream(fp);
     mu_assert("Error, Input check failed.",
               strcmp(mock_output_buf, "Y\n?.") == 0 && status == STATUS_OK);
 
@@ -185,7 +185,7 @@ static char *test_io()
     // Newline + EOF
     strcpy(mock_input_buf, "\n");
 
-    ExcecutionStatus status = excecute_brainfuck_from_stream(fp);
+    ExecutionStatus status = execute_brainfuck_from_stream(fp);
     mu_assert("Error, Input check failed.",
               strcmp(mock_output_buf, "LB\nLB\n") == 0 && status == STATUS_OK);
 
@@ -195,7 +195,7 @@ static char *test_io()
 }
 
 
-/*** Test excecution. ***/
+/*** Test Execution. ***/
 static char *all_tests()
 {
     mu_run_test(test_hello_world);
