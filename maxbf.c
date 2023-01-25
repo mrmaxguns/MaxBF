@@ -78,7 +78,7 @@ typedef enum {
                             memory. */
     STATUS_ERR_LBOUND,  /** The user went past the start of the tape. */
     STATUS_ERR_NESTING, /** The user made an error when nesting brackets. */
-} ExcecutionStatus;
+} ExecutionStatus;
 
 /**
  * Represent the brainfuck tape which the program can manipulate.
@@ -118,8 +118,8 @@ struct interpreter_config {
 };
 
 
-/** Excecute a brainfuck program from a FILE stream. */
-ExcecutionStatus excecute_brainfuck_from_stream(FILE *fp);
+/** Execute a brainfuck program from a FILE stream. */
+ExecutionStatus execute_brainfuck_from_stream(FILE *fp);
 
 /** Given a Tape, allocate data and initialize all values. Return false on
     allocation failure. */
@@ -136,40 +136,40 @@ bool init_jump_stack(JumpStack *jump_stack);
 void destroy_jump_stack(JumpStack *jump_stack);
 
 /** Move the tape pointer to the right, allocating more memory if necessary. */
-ExcecutionStatus tape_move_right(Tape *tape, JumpStack *jump_stack);
+ExecutionStatus tape_move_right(Tape *tape, JumpStack *jump_stack);
 
 /** Move the tape pointer to the left, ensuring that the user does not go past
     the start of the tape. */
-ExcecutionStatus tape_move_left(Tape *tape, JumpStack *jump_stack);
+ExecutionStatus tape_move_left(Tape *tape, JumpStack *jump_stack);
 
 /** Increment the value currently pointed by the tape. */
-ExcecutionStatus tape_increment(Tape *tape, JumpStack *jump_stack);
+ExecutionStatus tape_increment(Tape *tape, JumpStack *jump_stack);
 
 /** Decrement the value currently pointed by the tape. */
-ExcecutionStatus tape_decrement(Tape *tape, JumpStack *jump_stack);
+ExecutionStatus tape_decrement(Tape *tape, JumpStack *jump_stack);
 
 /** Print the value currently pointed by the tape. */
-ExcecutionStatus tape_output(Tape *tape, JumpStack *jump_stack);
+ExecutionStatus tape_output(Tape *tape, JumpStack *jump_stack);
 
 /** Read in a character and store it in the current cell. */
-ExcecutionStatus tape_input(Tape *tape, JumpStack *jump_stack);
+ExecutionStatus tape_input(Tape *tape, JumpStack *jump_stack);
 
 /** Add the current jump if zero to the jump stack and enable skipping if the
     current cell is 0. */
-ExcecutionStatus tape_jump_if_zero(Tape *tape, JumpStack *jump_stack,
+ExecutionStatus tape_jump_if_zero(Tape *tape, JumpStack *jump_stack,
                  fpos_t *pos);
 
 /** Push a value to the jump stack, allocating more memory if necessary. */
-ExcecutionStatus jump_stack_push(JumpStack *jump_stack, fpos_t *pos);
+ExecutionStatus jump_stack_push(JumpStack *jump_stack, fpos_t *pos);
 
 /** Remove the matching jump if zero command from the jump stack and jump if
     current value is not zero. */
-ExcecutionStatus tape_jump_if_not_zero(Tape *tape, JumpStack *jump_stack,
+ExecutionStatus tape_jump_if_not_zero(Tape *tape, JumpStack *jump_stack,
                                        FILE *fp);
 
 /** Pop a value from the jump stack, returning STATUS_ERR_NESTING if there's
     nothing to pop. */
-ExcecutionStatus jump_stack_pop(JumpStack *jump_stack, fpos_t *pos);
+ExecutionStatus jump_stack_pop(JumpStack *jump_stack, fpos_t *pos);
 
 
 static inline void exit_with_error(char *msg)
@@ -217,7 +217,7 @@ int main(int argc, char *argv[])
         exit_with_error("Could not open file.");
     }
 
-    switch (excecute_brainfuck_from_stream(fp)) {
+    switch (execute_brainfuck_from_stream(fp)) {
         case STATUS_OK:
             break;
         case STATUS_ERR_ALLOC:
@@ -239,7 +239,7 @@ int main(int argc, char *argv[])
 }
 #endif // ifndef TESTING
 
-ExcecutionStatus excecute_brainfuck_from_stream(FILE *fp)
+ExecutionStatus execute_brainfuck_from_stream(FILE *fp)
 {
     // Initialize tape and jump stack.
     Tape tape;
@@ -257,7 +257,7 @@ ExcecutionStatus excecute_brainfuck_from_stream(FILE *fp)
     fgetpos(fp, &pos);
 
     // This will be set in case of an error.
-    ExcecutionStatus status = STATUS_OK;
+    ExecutionStatus status = STATUS_OK;
 
     int ch;
     while ((ch = fgetc(fp)) != EOF) {
@@ -349,7 +349,7 @@ void destroy_jump_stack(JumpStack *jump_stack)
     free(jump_stack->data);
 }
 
-ExcecutionStatus tape_move_right(Tape *tape, JumpStack *jump_stack)
+ExecutionStatus tape_move_right(Tape *tape, JumpStack *jump_stack)
 {
     if (jump_stack->skip_pos != NULL) return STATUS_OK;
 
@@ -377,7 +377,7 @@ ExcecutionStatus tape_move_right(Tape *tape, JumpStack *jump_stack)
     return STATUS_OK;
 }
 
-ExcecutionStatus tape_move_left(Tape *tape, JumpStack *jump_stack)
+ExecutionStatus tape_move_left(Tape *tape, JumpStack *jump_stack)
 {
     if (jump_stack->skip_pos != NULL) return STATUS_OK;
 
@@ -388,7 +388,7 @@ ExcecutionStatus tape_move_left(Tape *tape, JumpStack *jump_stack)
     return STATUS_OK;
 }
 
-ExcecutionStatus tape_increment(Tape *tape, JumpStack *jump_stack)
+ExecutionStatus tape_increment(Tape *tape, JumpStack *jump_stack)
 {
     if (jump_stack->skip_pos != NULL) return STATUS_OK;
 
@@ -396,7 +396,7 @@ ExcecutionStatus tape_increment(Tape *tape, JumpStack *jump_stack)
     return STATUS_OK;
 }
 
-ExcecutionStatus tape_decrement(Tape *tape, JumpStack *jump_stack)
+ExecutionStatus tape_decrement(Tape *tape, JumpStack *jump_stack)
 {
     if (jump_stack->skip_pos != NULL) return STATUS_OK;
 
@@ -404,7 +404,7 @@ ExcecutionStatus tape_decrement(Tape *tape, JumpStack *jump_stack)
     return STATUS_OK;
 }
 
-ExcecutionStatus tape_output(Tape *tape, JumpStack *jump_stack)
+ExecutionStatus tape_output(Tape *tape, JumpStack *jump_stack)
 {
     if (jump_stack->skip_pos != NULL) return STATUS_OK;
 
@@ -412,7 +412,7 @@ ExcecutionStatus tape_output(Tape *tape, JumpStack *jump_stack)
     return STATUS_OK;
 }
 
-ExcecutionStatus tape_input(Tape *tape, JumpStack *jump_stack)
+ExecutionStatus tape_input(Tape *tape, JumpStack *jump_stack)
 {
     if (jump_stack->skip_pos != NULL) return STATUS_OK;
 
@@ -424,11 +424,11 @@ ExcecutionStatus tape_input(Tape *tape, JumpStack *jump_stack)
     return STATUS_OK;
 }
 
-ExcecutionStatus tape_jump_if_zero(Tape *tape, JumpStack *jump_stack,
+ExecutionStatus tape_jump_if_zero(Tape *tape, JumpStack *jump_stack,
                                    fpos_t *pos)
 {
     // Add current value to stack.
-    ExcecutionStatus push_status = jump_stack_push(jump_stack, pos);
+    ExecutionStatus push_status = jump_stack_push(jump_stack, pos);
     if (push_status != STATUS_OK) return push_status;
 
     // Ignore current value if in skip mode.
@@ -442,7 +442,7 @@ ExcecutionStatus tape_jump_if_zero(Tape *tape, JumpStack *jump_stack,
     return STATUS_OK;
 }
 
-ExcecutionStatus jump_stack_push(JumpStack *jump_stack, fpos_t *pos)
+ExecutionStatus jump_stack_push(JumpStack *jump_stack, fpos_t *pos)
 {
     // If more memory needs to be allocated for the jump stack.
     if (jump_stack->pos == jump_stack->data + jump_stack->size - 1) {
@@ -472,7 +472,7 @@ ExcecutionStatus jump_stack_push(JumpStack *jump_stack, fpos_t *pos)
     return STATUS_OK;
 }
 
-ExcecutionStatus tape_jump_if_not_zero(Tape *tape, JumpStack *jump_stack,
+ExecutionStatus tape_jump_if_not_zero(Tape *tape, JumpStack *jump_stack,
                                        FILE *fp)
 {
     // If we have finally matched the [ that initiated the skip.
@@ -481,7 +481,7 @@ ExcecutionStatus tape_jump_if_not_zero(Tape *tape, JumpStack *jump_stack,
     }
 
     fpos_t pos;
-    ExcecutionStatus pop_status = jump_stack_pop(jump_stack, &pos);
+    ExecutionStatus pop_status = jump_stack_pop(jump_stack, &pos);
     if (pop_status != STATUS_OK) return pop_status;
 
     // Jump if not zero.
@@ -492,7 +492,7 @@ ExcecutionStatus tape_jump_if_not_zero(Tape *tape, JumpStack *jump_stack,
     return STATUS_OK;
 }
 
-ExcecutionStatus jump_stack_pop(JumpStack *jump_stack, fpos_t *pos)
+ExecutionStatus jump_stack_pop(JumpStack *jump_stack, fpos_t *pos)
 {
     // If we have nothing to pop, that means a [ could not be found to match the
     // user's ].
