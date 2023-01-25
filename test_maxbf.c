@@ -7,8 +7,38 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "maxbf.c"
 #include "minunit.h"
+
+
+// Mock I/O functions for testing purposes.
+#ifdef TESTING
+    #define TEST_BUF_SIZE 1000
+    char mock_input_buf[TEST_BUF_SIZE] = { 0 };
+    char mock_output_buf[TEST_BUF_SIZE] = { 0 };
+
+    static inline int mock_getchar(void)
+    {
+        int result = (int)mock_input_buf[0];
+        // Shift input one to the left.
+        memmove(mock_input_buf, &mock_input_buf[1], TEST_BUF_SIZE - 1);
+        if (result == 0) return EOF;
+        return result;
+    }
+    #undef getchar
+    #define getchar() mock_getchar()
+
+    static inline int mock_putchar(int c)
+    {
+        size_t len = strlen(mock_output_buf);
+        mock_output_buf[len] = (char)c;
+        mock_output_buf[len + 1] = '\0';
+        return c;
+    }
+    #undef putchar
+    #define putchar(c) mock_putchar(c)
+#endif // ifdef TESTING
+
+#include "maxbf.c"
 
 
 int tests_run = 0;
