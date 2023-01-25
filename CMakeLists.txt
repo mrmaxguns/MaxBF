@@ -8,13 +8,19 @@ project(MaxBF VERSION 0.1.0
               DESCRIPTION "A Brainfuck interpreter written in C."
               LANGUAGES C)
 
+
+# Add dependencies
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/cargs) 
+
 ### Target: MaxBF ###
 add_executable(maxbf maxbf.c)
+target_link_libraries(maxbf cargs)
 set_property(TARGET maxbf
              PROPERTY C_STANDARD 99)
 
 ### Target: Tests ###
 add_executable(test_maxbf test_maxbf.c)
+target_link_libraries(test_maxbf cargs)
 target_compile_definitions(test_maxbf PUBLIC -DTESTING)
 add_test(NAME TestMaxBF
          COMMAND test_maxbf)

@@ -22,6 +22,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <cargs.h>
+
 
 #define INITIAL_TAPE_SIZE       1000
 #define INITIAL_JUMP_STACK_SIZE 100
@@ -36,6 +38,8 @@
 #define TOK_JUMP_NZERO ']'
 
 #define CELL_VALUE_EOF 0 // What the current cell is set to on EOF.
+
+#define OPTION_HELP 'h'
 
 
 // Mock I/O functions for testing purposes.
@@ -99,6 +103,19 @@ typedef struct {
                           a skip instruction so that we know when to ignore
                           nested braces. */
 } JumpStack;
+
+/** Command-line options for cargs. */
+static struct cag_option options[] = {
+    {.identifier=OPTION_HELP,
+     .access_letters="h",
+     .access_name="help",
+     .value_name=NULL,
+     .description="Print a help message"}
+};
+
+/** Configuration for the interpreter. */
+struct interpreter_config {
+};
 
 
 /** Excecute a brainfuck program from a FILE stream. */
@@ -170,11 +187,32 @@ static inline void warn(char *msg)
 #ifndef TESTING // An alternate main function will be used for tests.
 int main(int argc, char *argv[])
 {
-    if (argc != 2) {
-        exit_with_error("Usage: maxbf FILE");
+    cag_option_context context;
+    cag_option_prepare(&context, options, CAG_ARRAY_SIZE(options), argc, argv);
+
+    // Parse command-line options using cargs.
+    while (cag_option_fetch(&context)) {
+        char identifier = cag_option_get(&context);
+        switch (identifier) {
+            case 'h':
+                puts("Usage: maxbf [OPTIONS] FILE");
+                puts("A bulletproof interpreter for Brainfuck.");
+                cag_option_print(options, CAG_ARRAY_SIZE(options), stdout);
+                return EXIT_SUCCESS;
+        }
     }
 
-    FILE *fp = fopen(argv[1], "r");
+    // Parse file parameter.
+    int file_index = context.index;
+
+    if (file_index >= argc) {
+        exit_with_error("Please specify an input file.");
+    }
+    if (file_index < argc - 1) {
+        exit_with_error("Too many file arguments specified.");
+    }
+
+    FILE *fp = fopen(argv[file_index], "r");
     if (fp == NULL) {
         exit_with_error("Could not open file.");
     }
