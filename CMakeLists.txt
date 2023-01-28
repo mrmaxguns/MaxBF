@@ -8,6 +8,7 @@ project(MaxBF VERSION 0.2.0
               DESCRIPTION "A Brainfuck interpreter written in C."
               LANGUAGES C)
 add_definitions(-DPROJECT_VER="${CMAKE_PROJECT_VERSION}")
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Add dependencies
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/cargs) 
