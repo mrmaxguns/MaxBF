@@ -39,7 +39,9 @@
 
 #define CELL_VALUE_EOF 0 // What the current cell is set to on EOF.
 
-#define OPTION_HELP 'h'
+#define OPTION_HELP   'h'
+#define OPTION_INPUT  'i'
+#define OPTION_OUTPUT 'o'
 
 
 /** Represent interpreter errors. */
@@ -81,16 +83,29 @@ static struct cag_option options[] = {
      .access_letters="h",
      .access_name="help",
      .value_name=NULL,
-     .description="Print a help message"}
+     .description="Print a help message"},
+    {.identifier=OPTION_INPUT,
+     .access_letters="i",
+     .access_name="input-file",
+     .value_name="FILE",
+     .description="Specify a file as input for the brainfuck program"},
+    {.identifier=OPTION_OUTPUT,
+     .access_letters="o",
+     .access_name="output-file",
+     .value_name="FILE",
+     .description="Specify a file as output for the brainfuck program"},
 };
 
 /** Configuration for the interpreter. */
 struct interpreter_config {
+    const char *input_file;
+    const char *output_file;
 };
 
 
 /** Execute a brainfuck program from a FILE stream. */
-ExecutionStatus execute_brainfuck_from_stream(FILE *fp);
+ExecutionStatus execute_brainfuck_from_stream(FILE *fp, FILE *input_stream,
+                                              FILE *output_stream);
 
 /** Given a Tape, allocate data and initialize all values. Return false on
     allocation failure. */
@@ -120,10 +135,10 @@ ExecutionStatus tape_increment(Tape *tape, JumpStack *jump_stack);
 ExecutionStatus tape_decrement(Tape *tape, JumpStack *jump_stack);
 
 /** Print the value currently pointed by the tape. */
-ExecutionStatus tape_output(Tape *tape, JumpStack *jump_stack);
+ExecutionStatus tape_output(Tape *tape, JumpStack *jump_stack, FILE *fp);
 
 /** Read in a character and store it in the current cell. */
-ExecutionStatus tape_input(Tape *tape, JumpStack *jump_stack);
+ExecutionStatus tape_input(Tape *tape, JumpStack *jump_stack, FILE *fp);
 
 /** Add the current jump if zero to the jump stack and enable skipping if the
     current cell is 0. */
@@ -158,10 +173,13 @@ static inline void warn(char *msg)
 #ifndef TESTING // An alternate main function will be used for tests.
 int main(int argc, char *argv[])
 {
+    char *error_msg = NULL;
+
     cag_option_context context;
     cag_option_prepare(&context, options, CAG_ARRAY_SIZE(options), argc, argv);
 
     // Parse command-line options using cargs.
+    struct interpreter_config config = { .input_file=NULL, .output_file=NULL };
     while (cag_option_fetch(&context)) {
         char identifier = cag_option_get(&context);
         switch (identifier) {
@@ -170,25 +188,55 @@ int main(int argc, char *argv[])
                 puts("A bulletproof interpreter for Brainfuck.");
                 cag_option_print(options, CAG_ARRAY_SIZE(options), stdout);
                 return EXIT_SUCCESS;
+            case OPTION_INPUT:
+                config.input_file = cag_option_get_value(&context);
+            case OPTION_OUTPUT:
+                config.output_file = cag_option_get_value(&context);
         }
+    }
+
+    // Set input/output streams.
+    FILE *input_stream, *output_stream;
+
+    if (config.input_file != NULL) {
+        input_stream = fopen(config.input_file, "r");
+        if (input_stream == NULL) {
+            error_msg = "Could not open input file.";
+            goto error;
+        }
+    } else {
+        input_stream = stdin;
+    }
+
+    if (config.output_file != NULL) {
+        output_stream = fopen(config.output_file, "w");
+        if (output_stream == NULL) {
+            error_msg = "Could not open output file.";
+            goto error;
+        }
+    } else {
+        output_stream = stdout;
     }
 
     // Parse file parameter.
     int file_index = context.index;
 
     if (file_index >= argc) {
-        exit_with_error("Please specify an input file.");
+        error_msg = "Please specify brainfuck program file.";
+        goto error;
     }
     if (file_index < argc - 1) {
-        exit_with_error("Too many file arguments specified.");
+        error_msg = "Too many file arguments specified.";
+        goto error;
     }
 
     FILE *fp = fopen(argv[file_index], "r");
     if (fp == NULL) {
-        exit_with_error("Could not open file.");
+        error_msg = "Could not open brainfuck program file.";
+        goto error;
     }
 
-    switch (execute_brainfuck_from_stream(fp)) {
+    switch (execute_brainfuck_from_stream(fp, input_stream, output_stream)) {
         case STATUS_OK:
             break;
         case STATUS_ERR_ALLOC:
@@ -205,12 +253,21 @@ int main(int argc, char *argv[])
             break;
     }
 
-    fclose(fp);
-    return EXIT_SUCCESS;
+error: // Cleanup, regardless of error.
+    if (input_stream != NULL && input_stream != stdin) fclose(input_stream);
+    if (output_stream != NULL && output_stream != stdout) fclose(output_stream);
+    if (fp != NULL) fclose(fp);
+
+    if (error_msg == NULL) {
+        return EXIT_SUCCESS;
+    } else {
+        exit_with_error(error_msg);
+    }
 }
 #endif // ifndef TESTING
 
-ExecutionStatus execute_brainfuck_from_stream(FILE *fp)
+ExecutionStatus execute_brainfuck_from_stream(FILE *fp, FILE *input_stream,
+                                              FILE *output_stream)
 {
     // Initialize tape and jump stack.
     Tape tape;
@@ -246,10 +303,10 @@ ExecutionStatus execute_brainfuck_from_stream(FILE *fp)
                 status = tape_decrement(&tape, &jump_stack);
                 break;
             case TOK_OUTPUT:
-                status = tape_output(&tape, &jump_stack);
+                status = tape_output(&tape, &jump_stack, output_stream);
                 break;
             case TOK_INPUT:
-                status = tape_input(&tape, &jump_stack);
+                status = tape_input(&tape, &jump_stack, input_stream);
                 break;
             case TOK_JUMP_ZERO:
                 status = tape_jump_if_zero(&tape, &jump_stack, &pos);
@@ -375,20 +432,20 @@ ExecutionStatus tape_decrement(Tape *tape, JumpStack *jump_stack)
     return STATUS_OK;
 }
 
-ExecutionStatus tape_output(Tape *tape, JumpStack *jump_stack)
+ExecutionStatus tape_output(Tape *tape, JumpStack *jump_stack, FILE *fp)
 {
     if (jump_stack->skip_pos != NULL) return STATUS_OK;
 
-    putchar((int)*tape->pointer);
+    fputc((int)*tape->pointer, fp);
     return STATUS_OK;
 }
 
-ExecutionStatus tape_input(Tape *tape, JumpStack *jump_stack)
+ExecutionStatus tape_input(Tape *tape, JumpStack *jump_stack, FILE *fp)
 {
     if (jump_stack->skip_pos != NULL) return STATUS_OK;
 
     int ch;
-    if ((ch = getchar()) == EOF) {
+    if ((ch = fgetc(fp)) == EOF) {
         ch = CELL_VALUE_EOF;
     }
     *tape->pointer = (char)ch;
