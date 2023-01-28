@@ -25,6 +25,10 @@
 #include <cargs.h>
 
 
+#ifndef PROJECT_VER
+#    define PROJECT_VER "unknown"
+#endif
+
 #define INITIAL_TAPE_SIZE       1000
 #define INITIAL_JUMP_STACK_SIZE 100
 
@@ -39,9 +43,10 @@
 
 #define CELL_VALUE_EOF 0 // What the current cell is set to on EOF.
 
-#define OPTION_HELP   'h'
-#define OPTION_INPUT  'i'
-#define OPTION_OUTPUT 'o'
+#define OPTION_HELP    'h'
+#define OPTION_VERSION 'v'
+#define OPTION_INPUT   'i'
+#define OPTION_OUTPUT  'o'
 
 
 /** Represent interpreter errors. */
@@ -84,6 +89,11 @@ static struct cag_option options[] = {
      .access_name="help",
      .value_name=NULL,
      .description="Print a help message"},
+    {.identifier=OPTION_VERSION,
+     .access_letters="v",
+     .access_name="version",
+     .value_name=NULL,
+     .description="Print current MaxBF version"},
     {.identifier=OPTION_INPUT,
      .access_letters="i",
      .access_name="input-file",
@@ -187,6 +197,9 @@ int main(int argc, char *argv[])
                 puts("Usage: maxbf [OPTIONS] FILE");
                 puts("A bulletproof interpreter for Brainfuck.");
                 cag_option_print(options, CAG_ARRAY_SIZE(options), stdout);
+                return EXIT_SUCCESS;
+            case OPTION_VERSION:
+                printf("MaxBF version %s\n", PROJECT_VER);
                 return EXIT_SUCCESS;
             case OPTION_INPUT:
                 config.input_file = cag_option_get_value(&context);

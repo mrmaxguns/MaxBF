@@ -4,10 +4,10 @@ if(${CMAKE_VERSION} VERSION_LESS 3.12)
     cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
 endif()
 
-project(MaxBF VERSION 0.1.0
+project(MaxBF VERSION 0.2.0
               DESCRIPTION "A Brainfuck interpreter written in C."
               LANGUAGES C)
-
+add_definitions(-DPROJECT_VER="${CMAKE_PROJECT_VERSION}")
 
 # Add dependencies
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/cargs) 
