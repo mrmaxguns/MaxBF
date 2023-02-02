@@ -40,13 +40,16 @@
 #define TOK_INPUT      ','
 #define TOK_JUMP_ZERO  '['
 #define TOK_JUMP_NZERO ']'
+#define TOK_DEBUG      '#' // Optional feature.
 
-#define CELL_VALUE_EOF 0 // What the current cell is set to on EOF.
+#define CELL_VALUE_EOF  0 // What the current cell is set to on EOF.
+#define DEBUG_NUM_CELLS 3 // The number of cells on each side: 3 + current + 3.
 
 #define OPTION_HELP    'h'
 #define OPTION_VERSION 'v'
 #define OPTION_INPUT   'i'
 #define OPTION_OUTPUT  'o'
+#define OPTION_DEBUG   'd'
 
 
 /** Represent interpreter errors. */
@@ -104,18 +107,25 @@ static struct cag_option options[] = {
      .access_name="output-file",
      .value_name="FILE",
      .description="Specify a file as output for the brainfuck program"},
+    {.identifier=OPTION_DEBUG,
+     .access_letters="d",
+     .access_name="debug",
+     .value_name=NULL,
+     .description="Enable the # command for debugging"},
 };
 
 /** Configuration for the interpreter. */
 struct interpreter_config {
     const char *input_file;
     const char *output_file;
+    bool debug_enabled;
 };
 
 
 /** Execute a brainfuck program from a FILE stream. */
 ExecutionStatus execute_brainfuck_from_stream(FILE *fp, FILE *input_stream,
-                                              FILE *output_stream);
+                                              FILE *output_stream,
+                                              struct interpreter_config *config);
 
 /** Given a Tape, allocate data and initialize all values. Return false on
     allocation failure. */
@@ -167,6 +177,10 @@ ExecutionStatus tape_jump_if_not_zero(Tape *tape, JumpStack *jump_stack,
     nothing to pop. */
 ExecutionStatus jump_stack_pop(JumpStack *jump_stack, fpos_t *pos);
 
+/** Print 5 cells in the tape, with the current cell in the middle, along with
+    the character set values they represent. */
+ExecutionStatus tape_print_debug_info(Tape *tape);
+
 
 static inline void exit_with_error(char *msg)
 {
@@ -205,6 +219,8 @@ int main(int argc, char *argv[])
                 config.input_file = cag_option_get_value(&context);
             case OPTION_OUTPUT:
                 config.output_file = cag_option_get_value(&context);
+            case OPTION_DEBUG:
+                config.debug_enabled = true;
         }
     }
 
@@ -249,7 +265,7 @@ int main(int argc, char *argv[])
         goto error;
     }
 
-    switch (execute_brainfuck_from_stream(fp, input_stream, output_stream)) {
+    switch (execute_brainfuck_from_stream(fp, input_stream, output_stream, &config)) {
         case STATUS_OK:
             break;
         case STATUS_ERR_ALLOC:
@@ -280,7 +296,8 @@ error: // Cleanup, regardless of error.
 #endif // ifndef TESTING
 
 ExecutionStatus execute_brainfuck_from_stream(FILE *fp, FILE *input_stream,
-                                              FILE *output_stream)
+                                              FILE *output_stream,
+                                              struct interpreter_config *config)
 {
     // Initialize tape and jump stack.
     Tape tape;
@@ -327,6 +344,10 @@ ExecutionStatus execute_brainfuck_from_stream(FILE *fp, FILE *input_stream,
             case TOK_JUMP_NZERO:
                 status = tape_jump_if_not_zero(&tape, &jump_stack, fp);
                 break;
+            case TOK_DEBUG:
+                if (config->debug_enabled) {
+                    status = tape_print_debug_info(&tape);
+                }
             default:
                 break; // Ignore all other characters.
         }
@@ -541,5 +562,41 @@ ExecutionStatus jump_stack_pop(JumpStack *jump_stack, fpos_t *pos)
 
     *pos = *jump_stack->pos;
     jump_stack->pos--;
+    return STATUS_OK;
+}
+
+ExecutionStatus tape_print_debug_info(Tape *tape)
+{
+    unsigned char *current_cell;
+
+    if (tape->pointer - tape->data < DEBUG_NUM_CELLS) {
+        current_cell = tape->data;
+    } else {
+        current_cell = tape->pointer - DEBUG_NUM_CELLS;
+    }
+
+    printf("\n");
+    for (int i = 0; i < DEBUG_NUM_CELLS * 2 + 1; i++, current_cell++) {
+        ptrdiff_t cell_index = current_cell - tape->data;
+
+        // Print a pointer to the current cell.
+        if (current_cell == tape->pointer) {
+            printf("|{->}");
+        }
+
+        if (cell_index < tape->size) {
+            if (isprint(*current_cell)) {
+                printf("| cell #%td = %d (%c) ", cell_index, *current_cell, *current_cell);
+            } else {
+                printf("| cell #%td = %d () ", cell_index, *current_cell);
+            }
+        } else {
+            // Even though this cell may not actually exist in memory yet, in an
+            // infinite tape, it will always be initialized to zero.
+            printf("| cell #%td = 0 () ", cell_index);
+        }
+    }
+    printf("|\n");
+
     return STATUS_OK;
 }
