@@ -28,10 +28,14 @@ cmake --build build --target install
 ## Usage
 
 ```
-maxbf FILE
+Usage: maxbf [OPTIONS] FILE
+A bulletproof interpreter for Brainfuck.
+  -h, --help                 Print a help message
+  -v, --version              Print current MaxBF version
+  -i, --input-file=FILE      Specify a file as input for the brainfuck program
+  -o, --output-file=FILE     Specify a file as output for the brainfuck program
+  -d, --debug                Enable the # command for debugging
 ```
-
-Where FILE is a path to the brainfuck program to execute.
 
 ## Specification
 
@@ -71,10 +75,10 @@ The `<` command decrements the data pointer.
 
 #### Byte manipulation
 
-The `+` command increases the byte at the currently pointed cell, wraping to `0`
+The `+` command increases the byte at the currently pointed cell, wrapping to `0`
 if incremented past the maximum value.
 
-The `-` command decreases the byte at the currently pointed cell, wraping to the
+The `-` command decreases the byte at the currently pointed cell, wrapping to the
 maximum value if decremented past `0`.
 
 #### I/O
@@ -89,12 +93,17 @@ instead set to `0`.
 #### Instruction pointer manipulation
 
 The `[` command jumps to the matching `]` command if the currently pointed value
-is `0`. Otherwise, excecution continues normally.
+is `0`. Otherwise, execution continues normally.
 
 The `]` command jumps to the matching `[` command if the currently pointed value
-is not `0`. Otherwise, excecution continues normally.
+is not `0`. Otherwise, execution continues normally.
 
 The `[` and `]` commands must be properly nested (each `[` must have a matching `]`).
 Otherwise, the interpreter prints an error message.
+
+#### Debugging
+
+The `#` command can be enabled with the `--debug` flag. If enabled, the interpreter
+prints the current pointed value and surrounding cells.
 
 [cmake_install]: https://cmake.org/download/
